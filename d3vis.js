@@ -11,7 +11,9 @@ export default function define(runtime, observer) {
     const simulation = d3.forceSimulation(nodes)
       .force("link", d3.forceLink(links).id(d => d.id))
       .force("charge", d3.forceManyBody())
-      .force("center", d3.forceCenter(width / 2, height / 2));
+      .force("center", d3.forceCenter(width / 2, height / 2))
+      .force("collide", d3.forceCollide(30));
+
 
     const svg = d3.create("svg")
       .attr("viewBox", [0, 0, width, height])
@@ -40,11 +42,33 @@ export default function define(runtime, observer) {
       .attr("r", d => d.size)
       // .attr("fill", "#f8b800")
       .attr("fill", d => d.color)
-      .on("mouseover", handleMouseOver)
+      // .on("mouseover", nodeMouseover)
+      // .on("mouseover", handleMouseOver)
       .on("mouseleave", handleMouseLeave)
       .on("click", handleMouseClick)
-      .call(drag(simulation));
-
+      // .attr("selection", true)
+      .call(drag(simulation))
+      .on("mouseover", function(d) { 
+        d3.select(this).style("stroke-width", 6); 
+        var nodeNeighbors = links.filter(function(link) {
+            return link.source.index === d.index || link.target.index === d.index;})
+        .map(function(link) {
+            return link.source.index === d.index ? link.target.index : link.source.index; });
+        // svg.selectAll('circle').style('stroke', 'red');
+        svg.selectAll('circle').filter(function(node) {
+            return nodeNeighbors.indexOf(node.index) > -1;
+        })
+        .style('stroke', 'red')
+        .style('opacity', 1);
+        d3.select(this).style("stroke", "red"); 
+        //}
+    })
+    .on("mouseout",  function(d) { 
+          svg.selectAll('circle').style('opacity', 0.6);
+          svg.selectAll('circle').style('stroke', 'black');
+          // svg.selectAll('.links').style('opacity', 0.6);
+          d3.select(this).style("stroke-width", 1); 
+      });
 
     node.append("title")
       .text(d => d.name);
@@ -86,14 +110,26 @@ export default function define(runtime, observer) {
       document.body.style.cursor = 'auto';
     }
 
+    function nodeMouseover(d) {
+      console.log("hi");
+      node.classed("active", function (p) { return d3.select(this).classed("active") || p.source === d || p.target === d; });
+      svg.selectAll(".link.active").each(function (d) { linkMouseover(d) })
+      d3.select(this).classed("active", true);
+    }
+    function linkMouseover(d) {
+      node.classed("active", function (p) { return d3.select(this).classed("active") || p === d.source || p === d.target; });
+    }
+
     function handleMouseClick(d, i) {  // Add interactivity
       // Use D3 to select element, change color and size
       console.log(d);
       if (d.class == "tag") {
         d3.select(this).attr("style", "fill: blue; stroke: black");
+        console.log(d);
       } else {
         window.open(d.link)
       }
+      node.attr("class");
       // d3.select(this).attr({
       //   fill: "orange",
       //   stroke: "black",
