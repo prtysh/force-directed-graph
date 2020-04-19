@@ -14,7 +14,6 @@ export default function define(runtime, observer) {
       .force("center", d3.forceCenter(width / 2, height / 2))
       .force("collide", d3.forceCollide(30));
 
-
     const svg = d3.create("svg")
       .attr("viewBox", [0, 0, width, height])
       .attr("class", "box");
@@ -100,6 +99,9 @@ export default function define(runtime, observer) {
     }
 
     function mouseHover(d) {
+      if(d.class = "link"){
+        document.body.style.cursor = 'pointer';
+      }
       d3.select(this).style("stroke-width", 6);
       var nodeNeighbors = links.filter(function (link) {
         return link.source.index === d.index || link.target.index === d.index;
@@ -118,6 +120,7 @@ export default function define(runtime, observer) {
     }
 
     function mouseOut (d) {
+        document.body.style.cursor = 'auto';
         svg.selectAll('circle').style('opacity', 0.6);
         svg.selectAll('circle').style('stroke', 'black');
         d3.select(this).style("stroke-width", 1);
