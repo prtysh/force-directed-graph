@@ -40,29 +40,14 @@ export default function define(runtime, observer) {
       .data(nodes)
       .join("circle")
       .attr("r", d => d.size)
-      // .attr("fill", "#f8b800")
       .attr("fill", d => d.color)
-      // .on("mouseover", nodeMouseover)
-      // .on("mouseover", handleMouseOver)
       .on("mouseleave", handleMouseLeave)
       .on("click", handleMouseClick)
-      // .attr("selection", true)
       .call(drag(simulation))
-      .on("mouseover", function(d) { 
-        d3.select(this).style("stroke-width", 6); 
-        var nodeNeighbors = links.filter(function(link) {
-            return link.source.index === d.index || link.target.index === d.index;})
-        .map(function(link) {
-            return link.source.index === d.index ? link.target.index : link.source.index; });
-        // svg.selectAll('circle').style('stroke', 'red');
-        svg.selectAll('circle').filter(function(node) {
-            return nodeNeighbors.indexOf(node.index) > -1;
-        })
-        .style('stroke', 'red')
-        .style('opacity', 1);
-        d3.select(this).style("stroke", "red"); 
-        //}
-    })
+      .on("mouseover", mouseHover)
+      .on("ondblclick", mouseDblClick)
+      .on("touchstart",onTouch)
+
     .on("mouseout",  function(d) { 
           svg.selectAll('circle').style('opacity', 0.6);
           svg.selectAll('circle').style('stroke', 'black');
@@ -120,20 +105,42 @@ export default function define(runtime, observer) {
       node.classed("active", function (p) { return d3.select(this).classed("active") || p === d.source || p === d.target; });
     }
 
-    function handleMouseClick(d, i) {  // Add interactivity
-      // Use D3 to select element, change color and size
-      console.log(d);
+    function mouseHover (d) { 
+      d3.select(this).style("stroke-width", 6); 
+      var nodeNeighbors = links.filter(function(link) {
+          return link.source.index === d.index || link.target.index === d.index;})
+      .map(function(link) {
+          return link.source.index === d.index ? link.target.index : link.source.index; });
+      // svg.selectAll('circle').style('stroke', 'red');
+      svg.selectAll('circle').filter(function(node) {
+          return nodeNeighbors.indexOf(node.index) > -1;
+      })
+      .style('stroke', 'red')
+      .style('opacity', 1);
+      d3.select(this).style("stroke", "red"); 
+      //}
+  }
+
+    function handleMouseClick(d, i) {  
       if (d.class == "tag") {
         d3.select(this).attr("style", "fill: blue; stroke: black");
-        console.log(d);
-      } else {
+        } else {
         window.open(d.link)
       }
       node.attr("class");
-      // d3.select(this).attr({
-      //   fill: "orange",
-      //   stroke: "black",
-      // });
+    }
+
+    function mouseDblClick(d, i){
+      if (d.class == "tag") {
+        d3.select(this).attr("style", "fill: blue; stroke: black");
+        } else {
+        window.open(d.link)
+      }
+    }
+
+    function onTouch(evt) {
+      evt.preventDefault();
+      console.log("touched");
     }
 
     invalidation.then(() => simulation.stop());
