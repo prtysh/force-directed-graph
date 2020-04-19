@@ -41,19 +41,13 @@ export default function define(runtime, observer) {
       .join("circle")
       .attr("r", d => d.size)
       .attr("fill", d => d.color)
+      .on("touchstart", onTouch)
+      // .on("touchmove",onTouch)
       .on("mouseleave", handleMouseLeave)
       .on("click", handleMouseClick)
       .call(drag(simulation))
       .on("mouseover", mouseHover)
-      .on("ondblclick", mouseDblClick)
-      .on("touchstart",onTouch)
-
-    .on("mouseout",  function(d) { 
-          svg.selectAll('circle').style('opacity', 0.6);
-          svg.selectAll('circle').style('stroke', 'black');
-          // svg.selectAll('.links').style('opacity', 0.6);
-          d3.select(this).style("stroke-width", 1); 
-      });
+      .on("mouseout", mouseOut);
 
     node.append("title")
       .text(d => d.name);
@@ -105,43 +99,52 @@ export default function define(runtime, observer) {
       node.classed("active", function (p) { return d3.select(this).classed("active") || p === d.source || p === d.target; });
     }
 
-    function mouseHover (d) { 
-      d3.select(this).style("stroke-width", 6); 
-      var nodeNeighbors = links.filter(function(link) {
-          return link.source.index === d.index || link.target.index === d.index;})
-      .map(function(link) {
-          return link.source.index === d.index ? link.target.index : link.source.index; });
-      // svg.selectAll('circle').style('stroke', 'red');
-      svg.selectAll('circle').filter(function(node) {
-          return nodeNeighbors.indexOf(node.index) > -1;
+    function mouseHover(d) {
+      d3.select(this).style("stroke-width", 6);
+      var nodeNeighbors = links.filter(function (link) {
+        return link.source.index === d.index || link.target.index === d.index;
       })
-      .style('stroke', 'red')
-      .style('opacity', 1);
-      d3.select(this).style("stroke", "red"); 
+        .map(function (link) {
+          return link.source.index === d.index ? link.target.index : link.source.index;
+        });
+      // svg.selectAll('circle').style('stroke', 'red');
+      svg.selectAll('circle').filter(function (node) {
+        return nodeNeighbors.indexOf(node.index) > -1;
+      })
+        .style('stroke', 'red')
+        .style('opacity', 1);
+      d3.select(this).style("stroke", "red");
       //}
-  }
+    }
 
-    function handleMouseClick(d, i) {  
+    function mouseOut (d) {
+        svg.selectAll('circle').style('opacity', 0.6);
+        svg.selectAll('circle').style('stroke', 'black');
+        d3.select(this).style("stroke-width", 1);
+    }
+
+    function handleMouseClick(d, i) {
       if (d.class == "tag") {
         d3.select(this).attr("style", "fill: blue; stroke: black");
-        } else {
+      } else {
         window.open(d.link)
       }
       node.attr("class");
     }
 
-    function mouseDblClick(d, i){
-      if (d.class == "tag") {
-        d3.select(this).attr("style", "fill: blue; stroke: black");
-        } else {
-        window.open(d.link)
-      }
-    }
-
-    function onTouch(evt) {
+    function onTouch(d) {
       d3.event.preventDefault();
       d3.event.stopPropagation();
-      console.log("touched");
+      let x = d3.touches(this);
+      console.log(d.class);
+      mouseOut(d);
+      mouseHover(d);
+      if(d.class == "link"){
+        handleMouseClick(d);
+      }
+      if (d.class == "tag") {
+        d3.select(this).attr("style", "fill: blue; stroke: black");
+      }
     }
 
     invalidation.then(() => simulation.stop());
