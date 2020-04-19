@@ -139,7 +139,8 @@ export default function define(runtime, observer) {
     }
 
     function onTouch(evt) {
-      evt.preventDefault();
+      d3.event.preventDefault();
+      d3.event.stopPropagation();
       console.log("touched");
     }
 
